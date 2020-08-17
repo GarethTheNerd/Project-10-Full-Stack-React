@@ -4,6 +4,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const cors = require('cors')
 
 const apiRoutes = require('./routes/api');
 
@@ -15,6 +16,13 @@ const app = express();
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
 app.use(bodyParser.json());
+
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+app.use(cors(corsOptions));
 
 // /api routes are handled by routes/api.js
 app.use('/api', apiRoutes);

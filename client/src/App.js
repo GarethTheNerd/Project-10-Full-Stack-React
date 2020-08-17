@@ -1,26 +1,37 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import './global.css';
+import { Route, BrowserRouter as Router, Switch } from "react-router-dom";
+import Courses from './components/Courses';
+import CourseDetail from './components/CourseDetail';
+import UserSignUp from './components/UserSignUp';
+import NotFound from './components/NotFound';
+import UserSignIn from './components/UserSignIn';
+import UserSignOut from './components/UserSignOut';
+import CreateCourse from './components/CreateCourse';
+import UpdateCourse from './components/UpdateCourse';
+import Forbidden from './components/Forbidden';
+import UnhandledError from './components/UnhandledError';
+import WithContext from './Context';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+    return (
+        <Router>
+            <Switch>
+                <Route exact path="/" component={WithContext(Courses)} />
+                <Route path="/courses/create" component={CreateCourse} />
+                <Route path="/courses/:id/update" component={UpdateCourse} />
+                <Route path="/courses/:id" component={CourseDetail} />
+                <Route path="/signin" component={WithContext(UserSignIn)} />
+                <Route path="/signup" component={UserSignUp} />
+                <Route path="/signout" component={UserSignOut} />
+                <Route path="/notfound" component={NotFound} />
+                <Route path="/forbidden" component={Forbidden} />
+                <Route path="/error" component={UnhandledError} />
+                <Route component={NotFound} />
+            </Switch>
+        </Router>
+    );
 }
 
 export default App;
