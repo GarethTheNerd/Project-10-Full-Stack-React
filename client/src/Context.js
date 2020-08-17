@@ -37,8 +37,6 @@ export class Provider extends React.Component {
         const cookieOptions = {
             expires: 1 // 1 day
         };
-        console.log(JSON.stringify(user));
-        console.log(user);
         
         Cookies.set('authenticatedUser', JSON.stringify(user), {cookieOptions});
         }
