@@ -12,26 +12,32 @@ import UpdateCourse from './components/UpdateCourse';
 import Forbidden from './components/Forbidden';
 import UnhandledError from './components/UnhandledError';
 import WithContext from './Context';
+import Header from './components/Header';
+import PrivateRoute from './components/PrivateRoute';
+
+const HeaderWithContext = WithContext(Header);
 
 function App() {
 
     return (
         <Router>
+            <HeaderWithContext />
+            <hr />
             <Switch>
                 <Route exact path="/" component={WithContext(Courses)} />
-                <Route path="/courses/create" component={CreateCourse} />
-                <Route path="/courses/:id/update" component={UpdateCourse} />
-                <Route path="/courses/:id" component={CourseDetail} />
+                <PrivateRoute path="/courses/create" component={WithContext(CreateCourse)} />
+                <PrivateRoute path="/courses/:id/update" component={WithContext(UpdateCourse)} />
+                <Route path="/courses/:id" component={WithContext(CourseDetail)} />
                 <Route path="/signin" component={WithContext(UserSignIn)} />
-                <Route path="/signup" component={UserSignUp} />
-                <Route path="/signout" component={UserSignOut} />
+                <Route path="/signup" component={WithContext(UserSignUp)} />
+                <Route path="/signout" component={WithContext(UserSignOut)} />
                 <Route path="/notfound" component={NotFound} />
                 <Route path="/forbidden" component={Forbidden} />
                 <Route path="/error" component={UnhandledError} />
                 <Route component={NotFound} />
             </Switch>
         </Router>
-    );
+    )
 }
 
 export default App;

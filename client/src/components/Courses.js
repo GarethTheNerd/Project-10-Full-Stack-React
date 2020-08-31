@@ -1,7 +1,6 @@
 import React from 'react';
-import Header from './Header';
 import {getCourses} from '../data';
-import {Link, Redirect} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 
 
 class Courses extends React.Component {
@@ -38,28 +37,20 @@ class Courses extends React.Component {
             }
         })
         .catch(error => {
-            if(error.response.status === 404) {
-                this.setState({Redirect: '/notfound'});
-            } else if (error.response.status === 403) {
-                this.setState({Redirect: '/forbidden'});
+
+            if(error.status === 404) {
+                this.props.history.push('/notfound');
+            } else if (error.status === 403) {
+                this.props.history.push('/forbidden');
             } else {
-                this.setState({Redirect: '/error'});
+                this.props.history.push('/error');
             }
         });
     }
 
     render() {
-
-        if(this.state.Redirect) {
-            return (
-                <Redirect to={this.state.Redirect} />
-            )
-        }
-
         return (
             <div>
-                <Header />
-                <hr />
                 <div className="bounds">
                     {this.state.courses.map(course => (
                         <div key={course.id} className="grid-33"><Link className="course--module course--link" to={`/courses/${course.id}`}>

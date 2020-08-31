@@ -7,14 +7,16 @@ const Context = React.createContext();
 export class Provider extends React.Component {
 
     state = {
-        authenticatedUser: Cookies.getJSON('authenticatedUser') || null
+        authenticatedUser: Cookies.getJSON('authenticatedUser') || null,
+        rawPassword: Cookies.get("rawPassword") || null
     };
 
 
     render() {
-        const { authenticatedUser } = this.state;
+        const { authenticatedUser, rawPassword } = this.state;
         const value = {
         authenticatedUser,
+        rawPassword,
         actions: {
             signIn: this.signIn,
             signOut: this.signOut
@@ -30,15 +32,19 @@ export class Provider extends React.Component {
 
     signIn = async (username, password, controllerSignal) => {
         const user = await getUser(username, password, controllerSignal);
-        if (user !== null) {
-        this.setState({
-            authenticatedUser: user
-        });
-        const cookieOptions = {
-            expires: 1 // 1 day
-        };
-        
-        Cookies.set('authenticatedUser', JSON.stringify(user), {cookieOptions});
+        if (user.ok) {
+            const userJSON = await user.json();
+            this.setState({
+                authenticatedUser: userJSON,
+                rawPassword: password
+            });
+            const cookieOptions = {
+                expires: 7 // 7 days
+            };
+            Cookies.set('authenticatedUser', JSON.stringify(userJSON), cookieOptions);
+            Cookies.set('rawPassword', password, cookieOptions);
+        } else {
+            return new Error();
         }
         return user;
     }

@@ -1,30 +1,62 @@
 import React from 'react';
-import Header from './Header';
-import {getCourse} from '../data';
-import {Redirect} from 'react-router-dom';
+import {getCourse, updateCourse} from '../data';
 
 class UpdateCourse extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            course: {},
-            user: {}
+            user: {},
+            courseTitle: '',
+            courseDescription: '',
+            courseEstimatedTime: '',
+            courseMaterialsNeeded: ''
         }
     }
+    
+    controller = new AbortController();
 
     handleCancel = e => {
         e.preventDefault();
-        this.setState({Redirect: `/courses/${this.props.match.params.id}`});
+        this.props.history.push(`/courses/${this.props.match.params.id}`);
     }
 
-    handleSubmit = e => {
+    handleSubmit = async e => {
         e.preventDefault();
-        console.log('submit');
+        const {courseId, courseTitle, courseDescription, courseEstimatedTime, courseMaterialsNeeded, user} = this.state;
+        const courseObject = {
+            id: courseId,
+            title: courseTitle,
+            description: courseDescription,
+            estimatedTime: courseEstimatedTime,
+            materialsNeeded: courseMaterialsNeeded,
+            userId: user.id
+        }
+        const authObject = {
+            username: this.props.context.authenticatedUser.emailAddress,
+            password: this.props.context.rawPassword
+        }
+        const response = await updateCourse(courseObject, courseId, authObject, this.controller.signal);
+        if(response.ok) {
+            this.props.history.push(`/courses/${courseId}`);
+        }
     }
 
+    handleCourseTitleChange = e => {
+        this.setState({courseTitle: e.target.value});
+    }
 
-    controller = new AbortController();
+    handleCourseDescriptionChange = e => {
+        this.setState({courseDescription: e.target.value});
+    }
+
+    handleCourseEstimatedTimeChange = e => {
+        this.setState({courseEstimatedTime: e.target.value});
+    }
+    
+    handleCourseMaterialsNeededChange = e => {
+        this.setState({courseMaterialsNeeded: e.target.value});
+    }
 
     componentDidMount() {
         const { id } = this.props.match.params;
@@ -33,8 +65,12 @@ class UpdateCourse extends React.Component {
             if(response.ok) {
                 response.json().then(responseString => 
                     {this.setState({
-                        course: responseString,
-                        user: responseString.User
+                        user: responseString.User,
+                        courseId: responseString.id,
+                        courseTitle: responseString.title,
+                        courseDescription: responseString.description,
+                        courseEstimatedTime: responseString.estimatedTime,
+                        courseMaterialsNeeded: responseString.materialsNeeded
                         })})               
             } else {
                 const error = new Error();
@@ -44,27 +80,19 @@ class UpdateCourse extends React.Component {
         })
         .catch(error => {
             if(error.response.status === 404) {
-                this.setState({Redirect: '/notfound'});
+                this.props.history.push('/notfound');
             } else if (error.response.status === 403) {
-                this.setState({Redirect: '/forbidden'});
+                this.props.history.push('/forbidden');
             } else {
-                this.setState({Redirect: '/error'});
+                this.props.history.push('/error');
             }
         });
     }
 
     render() {
 
-        if(this.state.Redirect) {
-            return (
-                <Redirect to={this.state.Redirect} />
-            )
-        }
-
         return (
             <div>
-                <Header />
-                <hr />
                 <div className="bounds course--detail">
                     <h1>Update Course</h1>
                     <div>
@@ -73,11 +101,11 @@ class UpdateCourse extends React.Component {
                                 <div className="course--header">
                                     <h4 className="course--label">Course</h4>
                                     <div><input id="title" name="title" type="text" className="input-title course--title--input" placeholder="Course title..."
-                                    defaultValue={this.state.course.title} /></div>
-                                    <p>{this.state.user.firstName} {this.state.user.lastName}</p>
+                                    defaultValue={this.state.courseTitle} onChange={this.handleCourseTitleChange} /></div>
+                                    <p>By {this.state.user.firstName} {this.state.user.lastName}</p>
                                 </div>
                                 <div className="course--description">
-                                    <div><textarea id="description" name="description" className="" placeholder="Course description..." defaultValue={this.state.course.description}></textarea></div>
+                                    <div><textarea id="description" name="description" className="" placeholder="Course description..." defaultValue={this.state.courseDescription} onChange={this.handleCourseDescriptionChange}></textarea></div>
                                     </div>
                                 </div>
                                 <div className="grid-25 grid-right">
@@ -86,11 +114,11 @@ class UpdateCourse extends React.Component {
                                             <li className="course--stats--list--item">
                                                 <h4>Estimated Time</h4>
                                                 <div><input id="estimatedTime" name="estimatedTime" type="text" className="course--time--input"
-                                                placeholder="Hours" defaultValue={this.state.course.estimatedTime} /></div>
+                                                placeholder="Hours" defaultValue={this.state.courseEstimatedTime} onChange={this.handleCourseEstimatedTimeChange}/></div>
                                             </li>
                                             <li className="course--stats--list--item">
                                                 <h4>Materials Needed</h4>
-                                                <div><textarea id="materialsNeeded" name="materialsNeeded" className="" placeholder="List materials..." defaultValue={this.state.course.materialsNeeded}></textarea></div>
+                                                <div><textarea id="materialsNeeded" name="materialsNeeded" className="" placeholder="List materials..." defaultValue={this.state.courseMaterialsNeeded} onChange={this.handleCourseMaterialsNeededChange}></textarea></div>
                                             </li>
                                         </ul>
                                     </div>

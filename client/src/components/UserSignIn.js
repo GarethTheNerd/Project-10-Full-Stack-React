@@ -1,6 +1,5 @@
 import React from 'react';
-import Header from './Header';
-import {Redirect, Link} from 'react-router-dom'; 
+import {Link, Redirect} from 'react-router-dom'; 
 
 class UserSignIn extends React.Component {
 
@@ -8,7 +7,8 @@ class UserSignIn extends React.Component {
         super(props);
         this.state = {
             username: '',
-            password: ''
+            password: '',
+            signInError: false
         }
     }
 
@@ -16,15 +16,24 @@ class UserSignIn extends React.Component {
 
     handleCancel = e => {
         e.preventDefault();
-        this.setState({Redirect: `/`});
+        this.props.history.push(`/`);
     }
     
-    handleSignin = e => {
+    handleSignin = async e => {
         e.preventDefault();
         const {context} = this.props;
-        context.actions.signIn(this.controller.signal,this.state.username, this.state.password);
+        const response = await context.actions.signIn(this.state.username, this.state.password, this.controller.signal)
+        if(response.ok) {
 
-        //TODO: Add sign in code!!
+            let redirect = "/";
+            if(this.props.state) {
+                redirect = this.props.location.state.from;
+            }
+
+            this.props.history.push(redirect);
+        } else {
+            this.setState({signInError: true});
+        }
     }
 
     handleEmailChange = e => {
@@ -36,33 +45,27 @@ class UserSignIn extends React.Component {
     }
 
     render() {
-
-        if(this.state.Redirect) {
-            return (
-                <Redirect to={this.state.Redirect} />
-            )
-        }
-
+                
         return (
             <div>
-            <Header />
-                <hr />
-      <div className="bounds">
-        <div className="grid-33 centered signin">
-          <h1>Sign In</h1>
-          <div>
-            <form onSubmit={this.handleSignin}>
-              <div><input id="emailAddress" name="emailAddress" type="text" className="" placeholder="Email Address" onChange={this.handleEmailChange} /></div>
-              <div><input id="password" name="password" type="password" className="" placeholder="Password" onChange={this.handlePasswordChange}/></div>
-              <div className="grid-100 pad-bottom"><button className="button" type="submit">Sign In</button><button className="button button-secondary" onClick={this.handleCancel}>Cancel</button></div>
-            </form>
-          </div>
-          <p>&nbsp;</p>
-          <p>Don't have a user account? <Link to="/signup">Click here</Link> to sign up!</p>
-        </div>
-      </div>
-            </div>
-        )
+                {this.props.context.autheticatedUser === null ? <Redirect to="/" /> : null}
+                <div className="bounds">
+                <div className="grid-33 centered signin">
+                    <h1>Sign In</h1>
+                    <div>
+                        {this.state.signInError ? <h3 className="login-error">Error: Credentials were incorrect!</h3> : null }
+                        <form onSubmit={this.handleSignin}>
+                            <div><input id="emailAddress" name="emailAddress" type="text" className="" placeholder="Email Address" onChange={this.handleEmailChange} /></div>
+                            <div><input id="password" name="password" type="password" className="" placeholder="Password" onChange={this.handlePasswordChange}/></div>
+                            <div className="grid-100 pad-bottom"><button className="button" type="submit">Sign In</button><button className="button button-secondary" onClick={this.handleCancel}>Cancel</button></div>
+                        </form>
+                    </div>
+                <p>&nbsp;</p>
+                <p>Don't have a user account? <Link to="/signup">Click here</Link> to sign up!</p>
+                </div>
+                </div>
+                </div>
+                )
     }
 }
 export default UserSignIn;

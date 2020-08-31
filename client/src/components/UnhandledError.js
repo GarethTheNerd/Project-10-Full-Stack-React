@@ -1,10 +1,8 @@
 import React from 'react';
-import Header from './Header';
 
 const UnhandledError = () => {
     return(
         <div>
-            <Header />
             <hr />
             <div className="bounds">
                 <h1>Error</h1>

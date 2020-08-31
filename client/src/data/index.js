@@ -4,7 +4,6 @@ const getData = async (url, method, data = null, fetchSignal, auth = null) => {
         method: method,
         headers: {
             'Content-Type': 'application/json',
-
         },
         signal: fetchSignal
     }
@@ -18,7 +17,7 @@ const getData = async (url, method, data = null, fetchSignal, auth = null) => {
 
     //Data needs to be added to the options object for post methods but fetch will return an error if it is added on get calls.
     if(method.toUpperCase() !== "GET") {
-        options.data = data
+        options.body = JSON.stringify(data);
     }
     
     const response = await fetch(url, options);
@@ -35,7 +34,20 @@ export const getCourses = async (controllerSignal) => {
     return response;
 }
 
-export const getUser = async (controllerSignal, username, password) => {
+export const getUser = async (username, password, controllerSignal) => {
     const response = await getData(`http://localhost:5000/api/users`, "GET", null, controllerSignal, {username, password});
-    return response.json();
+    return response;
+}
+
+export const signUpUser = async (userObject, controllerSignal) => {
+    const response = await getData(`http://localhost:5000/api/users`, "POST", userObject, controllerSignal);
+    return response;
+}
+export const updateCourse = async (courseObject, courseId, authObject, controllerSignal) => {
+    const response = await getData(`http://localhost:5000/api/courses/${courseId}`, "PUT", courseObject, controllerSignal, authObject);
+    return response;
+}
+export const deleteCourse = async (courseId, authObject, controllerSignal) => {
+    const response = await getData(`http://localhost:5000/api/courses/${courseId}`, "DELETE", null, controllerSignal, authObject);
+    return response;
 }

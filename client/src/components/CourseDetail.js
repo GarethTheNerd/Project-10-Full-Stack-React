@@ -1,7 +1,6 @@
 import React from 'react';
-import Header from './Header';
-import {getCourse} from '../data';
-import {Link, Redirect} from 'react-router-dom';
+import {getCourse, deleteCourse} from '../data';
+import {Link} from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 
 class CourseDetail extends React.Component {
@@ -10,7 +9,8 @@ class CourseDetail extends React.Component {
         super(props);
         this.state = {
             course: {},
-            user: {}
+            user: {},
+            myCourse: false
         }
     }
 
@@ -20,10 +20,17 @@ class CourseDetail extends React.Component {
         this.controller.abort();
     }
 
-    handleDelete = (e) => {
+    handleDelete = async e => {
         e.preventDefault();
         if (window.confirm('Are you sure you want to delete this course? This CANNOT be undone.')) {
-            window.alert("Delete here!")
+            const authObject = {
+                username: this.props.context.authenticatedUser.emailAddress,
+                password: this.props.context.rawPassword
+            }
+            
+            const response = await deleteCourse(this.state.course.id, authObject, this.controller.signal);
+            console.log(response);
+            this.props.history.push('/');
         }
     } 
 
@@ -32,11 +39,21 @@ class CourseDetail extends React.Component {
         getCourse(id, this.controller.signal)
         .then(response => {
             if(response.ok) {
-                response.json().then(responseString => 
-                    {this.setState({
+                response.json().then(responseString => {
+                    this.setState({
                         course: responseString,
                         user: responseString.User
-                        })})               
+                    });
+                    
+                    if(this.props.context.authenticatedUser != null) {
+                        if(this.state.user.id === this.props.context.authenticatedUser.id) {
+                            this.setState({
+                                myCourse: true
+                            });
+                        }
+                    }
+                });
+                    
             } else {
                 const error = new Error();
                 error.response = response;
@@ -44,12 +61,12 @@ class CourseDetail extends React.Component {
             }
         })
         .catch(error => {
-            if(error.response.status === 404) {
-                this.setState({Redirect: '/notfound'});
-            } else if (error.response.status === 403) {
-                this.setState({Redirect: '/forbidden'});
+            if(error.status === 404) {
+                this.props.history.push('/notfound');
+            } else if (error.status === 403) {
+                this.props.history.push('/forbidden');
             } else {
-                this.setState({Redirect: '/error'});
+                this.props.history.push('/error');
             }
         });
     } 
@@ -57,20 +74,16 @@ class CourseDetail extends React.Component {
     render() {
         const {course, user} = this.state;
 
-        if(this.state.Redirect) {
-            return (
-                <Redirect to={this.state.Redirect} />
-            )
-        }
-
         return(
-        <div>
-            <Header />
-            <hr />
+            <div>
             <div className="actions--bar">
                 <div className="bounds">
-                    <div className="grid-100"><span><Link className="button" to={`/courses/${course.id}/update`}>Update Course</Link><button className="button" href="#" onClick={this.handleDelete}>Delete Course</button></span><Link
-                    className="button button-secondary" to="/">Return to List</Link></div>
+                    <div className="grid-100">
+                        <span>
+                            {this.state.myCourse ? <Link className="button" to={`/courses/${course.id}/update`}>Update Course</Link> : null }
+                            {this.state.myCourse ? <button className="button" href="#" onClick={this.handleDelete}>Delete Course</button> : null }
+                        </span>
+                        <Link className="button button-secondary" to="/">Return to List</Link></div>
                 </div>
             </div>
             <div className="bounds course--detail">
@@ -101,7 +114,7 @@ class CourseDetail extends React.Component {
                 </div>
             </div>
         </div>
-    </div>
+        </div>
         )
     }
 }

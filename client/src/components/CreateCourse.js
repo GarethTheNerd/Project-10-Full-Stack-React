@@ -1,6 +1,4 @@
 import React from 'react';
-import Header from './Header';
-import {Redirect} from 'react-router-dom';
 
 class CreateCourse extends React.Component {
 
@@ -11,22 +9,13 @@ class CreateCourse extends React.Component {
     
     handleCancel = (e) => {
         e.preventDefault();
-        this.setState({Redirect: `/`});
+        this.props.history.push(`/`);
     }
     
     
     render() {
-
-        if(this.state.Redirect) {
-            return (
-                <Redirect to={this.state.Redirect} />
-            )
-        }
-
         return(
             <div>
-        <Header />
-        <hr />
         <div className="bounds course--detail">
             <h1>Create Course</h1>
             <div>
@@ -45,7 +34,7 @@ class CreateCourse extends React.Component {
                     <h4 className="course--label">Course</h4>
                     <div><input id="title" name="title" type="text" className="input-title course--title--input" placeholder="Course title..."
                     /></div>
-                    <p>By Joe Smith</p>
+                    <p>By {this.props.context.authenticatedUser.firstName} {this.props.context.authenticatedUser.lastName}</p>
                 </div>
                 <div className="course--description">
                     <div><textarea id="description" name="description" className="" placeholder="Course description..."></textarea></div>
