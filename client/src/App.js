@@ -20,9 +20,11 @@ const HeaderWithContext = WithContext(Header);
 function App() {
 
     return (
+        //We define a router. The header is on every page
         <Router>
             <HeaderWithContext />
             <hr />
+            {/* We define all our routes. This component gets rendered on the single page of our app and renders the correct component for the current route  */}
             <Switch>
                 <Route exact path="/" component={WithContext(Courses)} />
                 <PrivateRoute path="/courses/create" component={WithContext(CreateCourse)} />

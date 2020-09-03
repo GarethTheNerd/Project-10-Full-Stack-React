@@ -1,8 +1,10 @@
 import React from 'react';
 import {Link, Redirect} from 'react-router-dom'; 
 
+//Define a stateful component
 class UserSignIn extends React.Component {
 
+    //We need a constructor to define default state
     constructor(props) {
         super(props);
         this.state = {
@@ -12,30 +14,35 @@ class UserSignIn extends React.Component {
         }
     }
 
+    //We define the aborcontroller. This is attached to every fetch request. We can use it to cancel the request on unmount
     controller = new AbortController();
 
+    //Cancel button handler 
     handleCancel = e => {
         e.preventDefault();
         this.props.history.push(`/`);
     }
     
+    //Sign in button handeler. Send inputs to the sign in method on our context class.
     handleSignin = async e => {
         e.preventDefault();
         const {context} = this.props;
         const response = await context.actions.signIn(this.state.username, this.state.password, this.controller.signal)
         if(response.ok) {
-
+            //We can sign them in. If a redirect has been set on the location prop, we direct there or the homepage
             let redirect = "/";
-            if(this.props.state) {
+            if(this.props.location) {
                 redirect = this.props.location.state.from;
             }
 
             this.props.history.push(redirect);
         } else {
+            //Sign in was unsuccessful. We set state to show an error
             this.setState({signInError: true});
         }
     }
 
+    //The following 2 functions just set state to match inputs
     handleEmailChange = e => {
         this.setState({username: e.target.value});
     }
@@ -44,10 +51,16 @@ class UserSignIn extends React.Component {
         this.setState({password: e.target.value});
     }
 
+    //This will cancel any ongoing fetch requests on this page. It is used to ensure no state updates happen after the component has unmounted
+    componentWillUnmount() {
+        this.controller.abort();
+    }
+
     render() {
                 
         return (
             <div>
+                {/* If a user is already logged in, there is no need to login so we redirect them away */}
                 {this.props.context.autheticatedUser === null ? <Redirect to="/" /> : null}
                 <div className="bounds">
                 <div className="grid-33 centered signin">

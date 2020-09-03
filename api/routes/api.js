@@ -137,7 +137,7 @@ router.post('/courses', authenticateUser ,asyncHandler( async (req, res, next) =
             ...req.body
         });
         await newCourse.save();
-        res.location('/');
+        res.location(`/courses/${newCourse.id}`);
         res.status(201).end();
     } catch (err) {
         const errors = err.errors.map(err => err.message);

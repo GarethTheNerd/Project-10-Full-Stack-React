@@ -14,14 +14,12 @@ class Courses extends React.Component {
 
     controller = new AbortController();
 
+    //This will cancel any ongoing fetch requests on this page. It is used to ensure no state updates happen after the component has unmounted
     componentWillUnmount() {
         this.controller.abort();
     }
 
-    deleteCourse = id => {
-        console.log("deleted!")
-    }
-
+    //The component mounts so we get our courses and add them to state to show them on-screen
     componentDidMount(){
 
         getCourses(this.controller.signal)
@@ -38,9 +36,9 @@ class Courses extends React.Component {
         })
         .catch(error => {
 
-            if(error.status === 404) {
+            if(error.response.status === 404) {
                 this.props.history.push('/notfound');
-            } else if (error.status === 403) {
+            } else if (error.response.status === 403) {
                 this.props.history.push('/forbidden');
             } else {
                 this.props.history.push('/error');
@@ -52,6 +50,7 @@ class Courses extends React.Component {
         return (
             <div>
                 <div className="bounds">
+                    {/* We map over each course and render it with a link to the course detail page */}
                     {this.state.courses.map(course => (
                         <div key={course.id} className="grid-33"><Link className="course--module course--link" to={`/courses/${course.id}`}>
                             <h4 className="course--label">Course</h4>

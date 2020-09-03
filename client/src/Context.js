@@ -31,16 +31,21 @@ export class Provider extends React.Component {
 
 
     signIn = async (username, password, controllerSignal) => {
+        //Send the sign in request to the API
         const user = await getUser(username, password, controllerSignal);
         if (user.ok) {
+            //Sign in successful
             const userJSON = await user.json();
             this.setState({
+                //Put the user in state and the password (in plain-text)
+                //If I could re-work this, I would use tokens rather than plain text passwords being stored
                 authenticatedUser: userJSON,
                 rawPassword: password
             });
             const cookieOptions = {
                 expires: 7 // 7 days
             };
+            //We need to set these on Cookies. If the page refreshes, state will be lost so we can reload it from cookies
             Cookies.set('authenticatedUser', JSON.stringify(userJSON), cookieOptions);
             Cookies.set('rawPassword', password, cookieOptions);
         } else {
@@ -49,6 +54,7 @@ export class Provider extends React.Component {
         return user;
     }
 
+    //Sign out method. We just remove the authenticatedUser from state and remove the cookie
     signOut = () => {
         this.setState({ authenticatedUser: null });
         Cookies.remove('authenticatedUser');

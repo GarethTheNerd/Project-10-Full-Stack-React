@@ -13,33 +13,48 @@ class CourseDetail extends React.Component {
             myCourse: false
         }
     }
-
+    //This controller will be attached to every fetch request so we can cancel them
     controller = new AbortController();
 
+    //This will cancel any ongoing fetch requests on this page. It is used to ensure no state updates happen after the component has unmounted
     componentWillUnmount() {
         this.controller.abort();
     }
 
+    //Delete button handler
     handleDelete = async e => {
         e.preventDefault();
+        //Pop up a prompt. Ask the user to confirm
         if (window.confirm('Are you sure you want to delete this course? This CANNOT be undone.')) {
+            //We create a authobject to attach to the request. We get the details from context
             const authObject = {
                 username: this.props.context.authenticatedUser.emailAddress,
                 password: this.props.context.rawPassword
             }
-            
+            //Send the web request to delete the course
             const response = await deleteCourse(this.state.course.id, authObject, this.controller.signal);
-            console.log(response);
-            this.props.history.push('/');
+            
+            if(response.ok) {
+                //Course deleted
+                this.props.history.push('/');
+            } else {
+                //Error
+                this.props.history.push('/error')
+            }
+
+            
         }
     } 
 
     componentDidMount() {
+        //Component mounts. We need to get the course object
         const { id } = this.props.match.params;
         getCourse(id, this.controller.signal)
         .then(response => {
             if(response.ok) {
+                //Request for course was successful
                 response.json().then(responseString => {
+                    //Put course and associated user into state
                     this.setState({
                         course: responseString,
                         user: responseString.User
@@ -47,7 +62,9 @@ class CourseDetail extends React.Component {
                     
                     if(this.props.context.authenticatedUser != null) {
                         if(this.state.user.id === this.props.context.authenticatedUser.id) {
+                            //This is the logged in users course.
                             this.setState({
+                                //We set myCourse to true to unhide the update and delete buttons
                                 myCourse: true
                             });
                         }
@@ -61,9 +78,12 @@ class CourseDetail extends React.Component {
             }
         })
         .catch(error => {
-            if(error.status === 404) {
+            //An error happened. If the course wasn't found, we send them to not found.
+            //If they don't have permission we send them to forbidden
+            //or just generic error
+            if(error.response.status === 404) {
                 this.props.history.push('/notfound');
-            } else if (error.status === 403) {
+            } else if (error.response.status === 403) {
                 this.props.history.push('/forbidden');
             } else {
                 this.props.history.push('/error');
@@ -80,6 +100,7 @@ class CourseDetail extends React.Component {
                 <div className="bounds">
                     <div className="grid-100">
                         <span>
+                            {/* This only renders the delete or update buttons if the course belongs to this user */}
                             {this.state.myCourse ? <Link className="button" to={`/courses/${course.id}/update`}>Update Course</Link> : null }
                             {this.state.myCourse ? <button className="button" href="#" onClick={this.handleDelete}>Delete Course</button> : null }
                         </span>

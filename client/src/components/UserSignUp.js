@@ -1,6 +1,6 @@
 import React from 'react';
 import {signUpUser} from '../data';
-import {Redirect} from 'react-router-dom';
+import {Redirect, Link} from 'react-router-dom';
 
 class UserSignUp extends React.Component {
 
@@ -35,15 +35,19 @@ class UserSignUp extends React.Component {
         const response = await signUpUser(userObject, this.controller.signal);
 
         if(response.ok) {
-            //Signup was successful. We will now sign them in with thier newly created account!
+            //Signup was successful. We will now sign them in with their newly created account!
             const {context} = this.props;
-            const loginResponse = await context.actions.signIn(this.controller.signal,this.state.emailAddress, this.state.password)
+            //Call sign in from context
+            const loginResponse = await context.actions.signIn(this.state.emailAddress, this.state.password, this.controller.signal)
             if(loginResponse.ok) {
+                //successfully signed in with new account
                 this.props.history.push('/');
             } else {
+                //Show an error to say we have created the account but failed to sign in
                 this.setState({signupErrors: ["Failed to sign in with new account"]});
             }
         } else if (response.status === 400) {
+            //Validation errors occured. Add them to the signuperrors array in state to render them
             const errorsText = await response.text();
             const errors = await JSON.parse(errorsText).message;
             this.setState({
@@ -72,6 +76,11 @@ class UserSignUp extends React.Component {
         this.setState({confirmPassword: e.target.value});
     }
 
+    //This will cancel any ongoing fetch requests on this page. It is used to ensure no state updates happen after the component has unmounted
+    componentWillUnmount() {
+        this.controller.abort();
+    }
+
     render() {
 
         return (                
@@ -95,7 +104,7 @@ class UserSignUp extends React.Component {
                         </form>
                     </div>
                     <p>&nbsp;</p>
-                    <p>Already have a user account? <a href="sign-in.html">Click here</a> to sign in!</p>
+                    <p>Already have a user account? <Link to="/signin">Click here</Link> to sign in!</p>
                 </div>
             </div>
         )

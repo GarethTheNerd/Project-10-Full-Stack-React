@@ -16,14 +16,17 @@ class UpdateCourse extends React.Component {
     
     controller = new AbortController();
 
+    //Cancel button handler
     handleCancel = e => {
         e.preventDefault();
         this.props.history.push(`/courses/${this.props.match.params.id}`);
     }
 
+    //Submit button handler
     handleSubmit = async e => {
         e.preventDefault();
         const {courseId, courseTitle, courseDescription, courseEstimatedTime, courseMaterialsNeeded, user} = this.state;
+        //Create our new course object
         const courseObject = {
             id: courseId,
             title: courseTitle,
@@ -32,13 +35,22 @@ class UpdateCourse extends React.Component {
             materialsNeeded: courseMaterialsNeeded,
             userId: user.id
         }
+        //Create a new auth object
         const authObject = {
             username: this.props.context.authenticatedUser.emailAddress,
             password: this.props.context.rawPassword
         }
+        //Send the update request
         const response = await updateCourse(courseObject, courseId, authObject, this.controller.signal);
         if(response.ok) {
+            //Course was updated
             this.props.history.push(`/courses/${courseId}`);
+        } else if (response.status === 403) {
+            //They don't have rights to update it
+            this.props.history.push('/forbidden');
+        } else {
+            //Other errors
+            this.props.history.push('/error');
         }
     }
 
@@ -58,20 +70,31 @@ class UpdateCourse extends React.Component {
         this.setState({courseMaterialsNeeded: e.target.value});
     }
 
+    //This will cancel any ongoing fetch requests on this page. It is used to ensure no state updates happen after the component has unmounted
+    componentWillUnmount() {
+        this.controller.abort();
+    }
+
     componentDidMount() {
+        //We need to get the existing course to render the current course as a starting point
         const { id } = this.props.match.params;
         getCourse(id, this.controller.signal)
         .then(response => {
             if(response.ok) {
-                response.json().then(responseString => 
-                    {this.setState({
+                response.json().then(responseString => {
+                    if(responseString.id === this.props.context.authenticatedUser.id) {
+                    this.setState({
                         user: responseString.User,
                         courseId: responseString.id,
                         courseTitle: responseString.title,
                         courseDescription: responseString.description,
                         courseEstimatedTime: responseString.estimatedTime,
                         courseMaterialsNeeded: responseString.materialsNeeded
-                        })})               
+                        })
+                } else {
+                    this.props.history.push('/forbidden');
+                }
+            })               
             } else {
                 const error = new Error();
                 error.response = response;
