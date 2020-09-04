@@ -10,7 +10,8 @@ class UpdateCourse extends React.Component {
             courseTitle: '',
             courseDescription: '',
             courseEstimatedTime: '',
-            courseMaterialsNeeded: ''
+            courseMaterialsNeeded: '',
+            submitErrors: ''
         }
     }
     
@@ -45,6 +46,12 @@ class UpdateCourse extends React.Component {
         if(response.ok) {
             //Course was updated
             this.props.history.push(`/courses/${courseId}`);
+        } else if (response.status === 400) {
+            //Validation errors. We get the errors and put them in state
+            const errorsText = await response.json();
+            this.setState({
+                submitErrors: errorsText.message
+            })
         } else if (response.status === 403) {
             //They don't have rights to update it
             this.props.history.push('/forbidden');
@@ -82,19 +89,19 @@ class UpdateCourse extends React.Component {
         .then(response => {
             if(response.ok) {
                 response.json().then(responseString => {
-                    if(responseString.id === this.props.context.authenticatedUser.id) {
-                    this.setState({
-                        user: responseString.User,
-                        courseId: responseString.id,
-                        courseTitle: responseString.title,
-                        courseDescription: responseString.description,
-                        courseEstimatedTime: responseString.estimatedTime,
-                        courseMaterialsNeeded: responseString.materialsNeeded
-                        })
-                } else {
-                    this.props.history.push('/forbidden');
-                }
-            })               
+                    if(responseString.userId === this.props.context.authenticatedUser.id) {
+                        this.setState({
+                            user: responseString.User,
+                            courseId: responseString.id,
+                            courseTitle: responseString.title,
+                            courseDescription: responseString.description,
+                            courseEstimatedTime: responseString.estimatedTime,
+                            courseMaterialsNeeded: responseString.materialsNeeded
+                            })
+                    } else {
+                        this.props.history.push('/forbidden');
+                    }
+                })               
             } else {
                 const error = new Error();
                 error.response = response;
@@ -118,17 +125,24 @@ class UpdateCourse extends React.Component {
             <div>
                 <div className="bounds course--detail">
                     <h1>Update Course</h1>
+                    {this.state.submitErrors === '' ? null : 
+                    <>
+                    <div className="validation-errors">
+                    <span>{this.state.submitErrors}</span>
+                    </div>
+                    </>
+                    }
                     <div>
                         <form onSubmit={this.handleSubmit}>
                             <div className="grid-66">
                                 <div className="course--header">
                                     <h4 className="course--label">Course</h4>
                                     <div><input id="title" name="title" type="text" className="input-title course--title--input" placeholder="Course title..."
-                                    defaultValue={this.state.courseTitle} onChange={this.handleCourseTitleChange} /></div>
+                                    value={this.state.courseTitle} onChange={this.handleCourseTitleChange} /></div>
                                     <p>By {this.state.user.firstName} {this.state.user.lastName}</p>
                                 </div>
                                 <div className="course--description">
-                                    <div><textarea id="description" name="description" className="" placeholder="Course description..." defaultValue={this.state.courseDescription} onChange={this.handleCourseDescriptionChange}></textarea></div>
+                                    <div><textarea id="description" name="description" className="" placeholder="Course description..." value={this.state.courseDescription} onChange={this.handleCourseDescriptionChange}></textarea></div>
                                     </div>
                                 </div>
                                 <div className="grid-25 grid-right">
@@ -137,7 +151,7 @@ class UpdateCourse extends React.Component {
                                             <li className="course--stats--list--item">
                                                 <h4>Estimated Time</h4>
                                                 <div><input id="estimatedTime" name="estimatedTime" type="text" className="course--time--input"
-                                                placeholder="Hours" defaultValue={this.state.courseEstimatedTime} onChange={this.handleCourseEstimatedTimeChange}/></div>
+                                                placeholder="Hours" value={this.state.courseEstimatedTime} onChange={this.handleCourseEstimatedTimeChange}/></div>
                                             </li>
                                             <li className="course--stats--list--item">
                                                 <h4>Materials Needed</h4>

@@ -26,6 +26,7 @@ class CreateCourse extends React.Component {
     handleSubmit = async e => {
         e.preventDefault();
         const {title, description, estimatedTime, materialsNeeded} = this.state;
+                
         //We create the course object to send to the API
         const courseObject = {
             title,

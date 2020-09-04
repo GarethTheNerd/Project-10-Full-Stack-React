@@ -115,7 +115,7 @@ class CourseDetail extends React.Component {
                         <p>By {user.firstName} {user.lastName}</p>
                     </div>
                 <div className="course--description">
-                    {course.description}
+                    <ReactMarkdown source={course.description} />
                 </div>
             </div>
             <div className="grid-25 grid-right">

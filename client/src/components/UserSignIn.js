@@ -31,7 +31,7 @@ class UserSignIn extends React.Component {
         if(response.ok) {
             //We can sign them in. If a redirect has been set on the location prop, we direct there or the homepage
             let redirect = "/";
-            if(this.props.location) {
+            if(this.props.location.state) {
                 redirect = this.props.location.state.from;
             }
 
